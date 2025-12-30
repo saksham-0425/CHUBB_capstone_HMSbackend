@@ -23,16 +23,47 @@ public class JwtAuthenticationFilter implements GlobalFilter {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         String path = exchange.getRequest().getURI().getPath();
-
-        
-        if (path.startsWith("/auth/")) {
-            return chain.filter(exchange);
-        }
+        String method = exchange.getRequest().getMethod().name();
 
         String authHeader = exchange.getRequest()
                 .getHeaders()
                 .getFirst(HttpHeaders.AUTHORIZATION);
 
+        // INTERNAL AUTH APIs → ADMIN ONLY
+        if (path.startsWith("/auth/internal/")) {
+
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return unauthorized(exchange);
+            }
+
+            String token = authHeader.substring(7);
+
+            if (!jwtUtil.validateToken(token)) {
+                return unauthorized(exchange);
+            }
+
+            if (!"ADMIN".equals(jwtUtil.extractRole(token))) {
+                return unauthorized(exchange);
+            }
+
+            return chain.filter(exchange);
+        }
+
+        // PUBLIC APIs
+        if (
+            path.startsWith("/auth/") ||
+            ("GET".equals(method) &&
+                (
+                    path.equals("/hotels") ||
+                    path.startsWith("/hotels/search") ||
+                    path.matches("/hotels/\\d+")
+                )
+            )
+        ) {
+            return chain.filter(exchange);
+        }
+
+        // 🔒 PROTECTED APIs
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return unauthorized(exchange);
         }
@@ -43,18 +74,13 @@ public class JwtAuthenticationFilter implements GlobalFilter {
             return unauthorized(exchange);
         }
 
-        String email = jwtUtil.extractEmail(token);
-        String role = jwtUtil.extractRole(token);
-
         ServerHttpRequest modifiedRequest = exchange.getRequest()
                 .mutate()
-                .header("X-User-Email", email)
-                .header("X-User-Role", role)
+                .header("X-User-Email", jwtUtil.extractEmail(token))
+                .header("X-User-Role", jwtUtil.extractRole(token))
                 .build();
 
-        return chain.filter(
-                exchange.mutate().request(modifiedRequest).build()
-        );
+        return chain.filter(exchange.mutate().request(modifiedRequest).build());
     }
 
     private Mono<Void> unauthorized(ServerWebExchange exchange) {

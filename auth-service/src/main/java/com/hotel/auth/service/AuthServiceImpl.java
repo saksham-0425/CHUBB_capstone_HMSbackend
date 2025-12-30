@@ -57,4 +57,28 @@ public class AuthServiceImpl implements AuthService {
 
         return user;
     }
+    
+    @Override
+    public void createOrPromoteManager(String email, String password) {
+
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+
+        if (user != null) {
+            // User exists -> promote to MANAGER
+            user.setRole(Role.MANAGER);
+            userRepository.save(user);
+        } else {
+            // User does not exist -> create MANAGER
+            User manager = User.builder()
+                    .email(email)
+                    .password(passwordEncoder.encode(password))
+                    .role(Role.MANAGER)
+                    .enabled(true)
+                    .build();
+
+            userRepository.save(manager);
+        }
+    }
+
 }

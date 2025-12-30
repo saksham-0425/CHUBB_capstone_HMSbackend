@@ -1,6 +1,8 @@
 package com.hotel.hotelservice.service.impl;
 
+import com.hotel.hotelservice.client.AuthClient;
 import com.hotel.hotelservice.dto.request.CreateHotelRequest;
+import com.hotel.hotelservice.dto.request.CreateManagerRequest;
 import com.hotel.hotelservice.dto.request.UpdateHotelRequest;
 import com.hotel.hotelservice.dto.response.HotelResponse;
 import com.hotel.hotelservice.dto.response.RoomCategoryResponse;
@@ -25,6 +27,7 @@ public class HotelServiceImpl implements HotelService {
 
     private final HotelRepository hotelRepository;
     private final RoomCategoryRepository roomCategoryRepository;
+    private final AuthClient authClient;
 
     @Override
     public HotelResponse createHotel(CreateHotelRequest request, String role) {
@@ -32,7 +35,15 @@ public class HotelServiceImpl implements HotelService {
         if (!"ADMIN".equals(role)) {
             throw new UnauthorizedException("Only ADMIN can create hotels");
         }
-
+        
+       
+        authClient.createManager(
+                new CreateManagerRequest(
+                        request.getManagerEmail(),
+                        generateManagerPassword()
+                )
+        );
+        
         Hotel hotel = Hotel.builder()
                 .name(request.getName())
                 .city(request.getCity())
@@ -139,5 +150,9 @@ public class HotelServiceImpl implements HotelService {
                                 .collect(Collectors.toList())
                 )
                 .build();
+    }
+    
+    private String generateManagerPassword() {
+        return "Manager@123"; 
     }
 }

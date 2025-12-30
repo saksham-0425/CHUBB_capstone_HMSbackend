@@ -9,4 +9,6 @@ public interface AuthService {
     User register(RegisterRequest request);
 
     User login(LoginRequest request);
+    
+    void createOrPromoteManager(String email, String password);
 }

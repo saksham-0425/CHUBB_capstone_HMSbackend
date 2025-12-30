@@ -32,7 +32,7 @@ public class RoomCategoryController {
 
     
 //   ADMIN / MANAGER → Update category inventory or pricing
-    @PutMapping("/categories/{categoryId}")
+    @PutMapping("/hotels/categories/{categoryId}")
     public ResponseEntity<RoomCategoryResponse> updateCategory(
             @PathVariable Long categoryId,
             @RequestHeader("X-User-Email") String userEmail,
