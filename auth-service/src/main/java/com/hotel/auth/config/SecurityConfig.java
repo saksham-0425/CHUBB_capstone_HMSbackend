@@ -14,19 +14,17 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            // 🔒 Disable CSRF for REST APIs
+           
             .csrf(csrf -> csrf.disable())
 
-            // 🔒 Stateless APIs
+        
             .sessionManagement(session ->
                 session.sessionCreationPolicy(
                     org.springframework.security.config.http.SessionCreationPolicy.STATELESS
                 )
             )
 
-            // 🔓 Authorization rules
             .authorizeHttpRequests(auth -> auth
-                // Public auth endpoints
                 .requestMatchers(
                     "/auth/login",
                     "/auth/register"
@@ -44,7 +42,7 @@ public class SecurityConfig {
                     "/actuator/health"
                 ).permitAll()
 
-                // ❌ Everything else blocked
+                // Everything else blocked
                 .anyRequest().authenticated()
             );
 
