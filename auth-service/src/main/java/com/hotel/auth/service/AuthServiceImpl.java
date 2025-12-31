@@ -1,5 +1,6 @@
 package com.hotel.auth.service;
 
+import com.hotel.auth.dto.CreateReceptionistRequest;
 import com.hotel.auth.dto.LoginRequest;
 import com.hotel.auth.dto.RegisterRequest;
 import com.hotel.auth.exception.InvalidCredentialsException;
@@ -80,5 +81,22 @@ public class AuthServiceImpl implements AuthService {
             userRepository.save(manager);
         }
     }
+    @Override
+    public void createReceptionist(CreateReceptionistRequest request) {
+
+        if (userRepository.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("User already exists");
+        }
+
+        User user = User.builder()
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .role(Role.RECEPTIONIST)
+                .enabled(true)
+                .build();
+
+        userRepository.save(user);
+    }
+
 
 }

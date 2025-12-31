@@ -1,8 +1,10 @@
 package com.hotel.auth.controller;
 
 import com.hotel.auth.dto.AuthResponse;
+import com.hotel.auth.dto.CreateReceptionistRequest;
 import com.hotel.auth.dto.LoginRequest;
 import com.hotel.auth.dto.RegisterRequest;
+import com.hotel.auth.exception.UnauthorizedException;
 import com.hotel.auth.model.User;
 import com.hotel.auth.service.AuthService;
 import com.hotel.auth.service.JwtService;
@@ -48,4 +50,18 @@ public class AuthController {
                         .build()
         );
     }
+    
+    @PostMapping("/internal/receptionists")
+    public ResponseEntity<Void> createReceptionist(
+            @RequestHeader("X-User-Role") String role,
+            @Valid @RequestBody CreateReceptionistRequest request
+    ) {
+        if (!"MANAGER".equals(role)) {
+            throw new UnauthorizedException("Only MANAGER can create receptionist");
+        }
+        authService.createReceptionist(request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    
 }

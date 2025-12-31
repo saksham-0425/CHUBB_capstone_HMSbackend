@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.hotel.auth.dto.ApiErrorResponse;
+
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -45,5 +47,18 @@ public class GlobalExceptionHandler {
                         "error", "Something went wrong"
                 )
         );
+    }
+    
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnauthorized(
+            UnauthorizedException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ApiErrorResponse(
+                        HttpStatus.UNAUTHORIZED.value(),
+                        "Unauthorized",
+                        ex.getMessage(),
+                        LocalDateTime.now()
+                ));
     }
 }

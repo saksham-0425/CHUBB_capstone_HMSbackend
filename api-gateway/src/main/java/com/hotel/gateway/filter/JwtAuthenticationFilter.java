@@ -25,28 +25,13 @@ public class JwtAuthenticationFilter implements GlobalFilter {
         String path = exchange.getRequest().getURI().getPath();
         String method = exchange.getRequest().getMethod().name();
 
-        String authHeader = exchange.getRequest()
-                .getHeaders()
-                .getFirst(HttpHeaders.AUTHORIZATION);
 
-        // INTERNAL AUTH APIs → ADMIN ONLY
-        if (path.startsWith("/auth/internal/")) {
+        if (path.equals("/auth/internal/create-manager")) {
+            return authorize(exchange, chain, "ADMIN");
+        }
 
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return unauthorized(exchange);
-            }
-
-            String token = authHeader.substring(7);
-
-            if (!jwtUtil.validateToken(token)) {
-                return unauthorized(exchange);
-            }
-
-            if (!"ADMIN".equals(jwtUtil.extractRole(token))) {
-                return unauthorized(exchange);
-            }
-
-            return chain.filter(exchange);
+        if (path.equals("/auth/internal/receptionists")) {
+            return authorize(exchange, chain, "MANAGER");
         }
 
         // PUBLIC APIs
@@ -63,7 +48,51 @@ public class JwtAuthenticationFilter implements GlobalFilter {
             return chain.filter(exchange);
         }
 
-        // 🔒 PROTECTED APIs
+        // PROTECTED APIs
+        return authorizeAndForward(exchange, chain);
+    }
+
+    private Mono<Void> authorize(
+            ServerWebExchange exchange,
+            GatewayFilterChain chain,
+            String requiredRole
+    ) {
+        String authHeader = exchange.getRequest()
+                .getHeaders()
+                .getFirst(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return unauthorized(exchange);
+        }
+
+        String token = authHeader.substring(7);
+
+        if (!jwtUtil.validateToken(token)) {
+            return unauthorized(exchange);
+        }
+
+        if (!requiredRole.equals(jwtUtil.extractRole(token))) {
+            return unauthorized(exchange);
+        }
+
+        // Forward headers
+        ServerHttpRequest modifiedRequest = exchange.getRequest()
+                .mutate()
+                .header("X-User-Email", jwtUtil.extractEmail(token))
+                .header("X-User-Role", jwtUtil.extractRole(token))
+                .build();
+
+        return chain.filter(exchange.mutate().request(modifiedRequest).build());
+    }
+
+    private Mono<Void> authorizeAndForward(
+            ServerWebExchange exchange,
+            GatewayFilterChain chain
+    ) {
+        String authHeader = exchange.getRequest()
+                .getHeaders()
+                .getFirst(HttpHeaders.AUTHORIZATION);
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return unauthorized(exchange);
         }
