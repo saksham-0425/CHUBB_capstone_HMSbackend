@@ -1,8 +1,10 @@
 package com.booking.bookingservice.service.impl;
 
+import com.booking.bookingservice.client.HotelServiceClient;
 import com.booking.bookingservice.service.AvailabilityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -11,14 +13,15 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class AvailabilityServiceImpl implements AvailabilityService {
 
-    private final RedisTemplate<String, Integer> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
+    private final HotelServiceClient hotelServiceClient;
 
     private String key(Long hotelId, Long categoryId, LocalDate date) {
         return String.format(
-            "availability:%d:%d:%s",
-            hotelId,
-            categoryId,
-            date
+                "availability:%d:%d:%s",
+                hotelId,
+                categoryId,
+                date
         );
     }
 
@@ -33,11 +36,12 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         LocalDate date = checkIn;
 
         while (date.isBefore(checkOut)) {
-            Integer available =
-                redisTemplate.opsForValue()
-                    .get(key(hotelId, categoryId, date));
 
-            if (available == null || available <= 0) {
+            Integer available = initializeIfMissing(
+                    hotelId, categoryId, date
+            );
+
+            if (available <= 0) {
                 return false;
             }
 
@@ -58,8 +62,12 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         LocalDate date = checkIn;
 
         while (date.isBefore(checkOut)) {
+
+            initializeIfMissing(hotelId, categoryId, date);
+
             redisTemplate.opsForValue()
-                .decrement(key(hotelId, categoryId, date));
+                    .decrement(key(hotelId, categoryId, date));
+
             date = date.plusDays(1);
         }
     }
@@ -75,9 +83,37 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         LocalDate date = checkIn;
 
         while (date.isBefore(checkOut)) {
+
+            initializeIfMissing(hotelId, categoryId, date);
+
             redisTemplate.opsForValue()
-                .increment(key(hotelId, categoryId, date));
+                    .increment(key(hotelId, categoryId, date));
+
             date = date.plusDays(1);
         }
+    }
+
+    private Integer initializeIfMissing(
+            Long hotelId,
+            Long categoryId,
+            LocalDate date
+    ) {
+        String redisKey = key(hotelId, categoryId, date);
+
+        String value = redisTemplate.opsForValue().get(redisKey);
+
+        if (value == null) {
+            int totalRooms =
+                    hotelServiceClient
+                            .getCategoryById(categoryId)
+                            .getTotalRooms();
+
+            redisTemplate.opsForValue()
+                    .set(redisKey, String.valueOf(totalRooms));
+
+            return totalRooms;
+        }
+
+        return Integer.parseInt(value);
     }
 }
