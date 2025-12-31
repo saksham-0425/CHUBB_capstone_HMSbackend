@@ -1,9 +1,12 @@
 package com.hotel.hotelservice.controller;
 
 import com.hotel.hotelservice.dto.request.CreateHotelRequest;
+import com.hotel.hotelservice.dto.request.CreateReceptionistRequest;
 import com.hotel.hotelservice.dto.request.UpdateHotelRequest;
 import com.hotel.hotelservice.dto.response.HotelResponse;
 import com.hotel.hotelservice.service.HotelService;
+import com.hotel.hotelservice.service.HotelStaffService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +21,7 @@ import java.util.List;
 public class HotelController {
 
     private final HotelService hotelService;
+    private final HotelStaffService hotelStaffService;
 
 
 //      ADMIN → Create Hotel
@@ -68,4 +72,22 @@ public class HotelController {
     ) {
         return ResponseEntity.ok(hotelService.getHotelById(hotelId));
     }
+    
+    @PostMapping("/{hotelId}/receptionists")
+    public ResponseEntity<Void> addReceptionist(
+            @PathVariable Long hotelId,
+            @RequestHeader("X-User-Role") String role,
+            @RequestHeader("X-User-Email") String managerEmail,
+            @Valid @RequestBody CreateReceptionistRequest request
+    ) {
+        hotelStaffService.addReceptionist(
+            hotelId,
+            managerEmail,
+            role,
+            request
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+
 }
