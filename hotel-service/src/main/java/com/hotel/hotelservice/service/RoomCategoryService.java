@@ -21,4 +21,5 @@ public interface RoomCategoryService {
     );
 
     List<RoomCategoryResponse> getCategoriesByHotel(Long hotelId);
+    RoomCategoryResponse getCategoryById(Long categoryId);
 }

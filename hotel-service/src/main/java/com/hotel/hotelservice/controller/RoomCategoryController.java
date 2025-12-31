@@ -54,4 +54,15 @@ public class RoomCategoryController {
                 roomCategoryService.getCategoriesByHotel(hotelId)
         );
     }
+    
+ // INTERNAL → Used by booking-service
+    @GetMapping("/internal/hotels/categories/{categoryId}")
+    public ResponseEntity<RoomCategoryResponse> getCategoryById(
+            @PathVariable Long categoryId
+    ) {
+        return ResponseEntity.ok(
+            roomCategoryService.getCategoryById(categoryId)
+        );
+    }
+
 }

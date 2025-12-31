@@ -101,4 +101,14 @@ public class RoomCategoryServiceImpl implements RoomCategoryService {
                 .basePrice(category.getBasePrice())
                 .build();
     }
+    
+    @Override
+    public RoomCategoryResponse getCategoryById(Long categoryId) {
+
+        RoomCategory category = roomCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        return mapToResponse(category);
+    }
+
 }
