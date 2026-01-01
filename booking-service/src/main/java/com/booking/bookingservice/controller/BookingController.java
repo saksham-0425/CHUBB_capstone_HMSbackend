@@ -79,4 +79,15 @@ public class BookingController {
         bookingService.checkOut(id, role);
         return ResponseEntity.ok().build();
     }
+    
+ // GUEST → Pay for booking
+    @PostMapping("/{id}/pay")
+    public ResponseEntity<Void> pay(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        bookingService.pay(id, email, role);
+        return ResponseEntity.ok().build();
+    }
 }

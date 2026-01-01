@@ -31,4 +31,6 @@ public interface BookingService {
     void checkIn(Long bookingId, String role);
 
     void checkOut(Long bookingId, String role);
+    
+    void pay(Long bookingId, String userEmail, String role);
 }

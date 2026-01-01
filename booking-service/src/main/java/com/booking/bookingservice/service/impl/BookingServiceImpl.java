@@ -5,6 +5,7 @@ import com.booking.bookingservice.dto.request.CreateBookingRequest;
 import com.booking.bookingservice.dto.response.BookingResponse;
 import com.booking.bookingservice.dto.response.RoomCategoryResponseDto;
 import com.booking.bookingservice.exception.*;
+import com.booking.bookingservice.model.PaymentStatus;
 import com.booking.bookingservice.model.Reservation;
 import com.booking.bookingservice.model.ReservationStatus;
 import com.booking.bookingservice.model.StayRecord;
@@ -92,6 +93,7 @@ public class BookingServiceImpl implements BookingService {
                     .pricePerNight(category.getBasePrice())
                     .totalAmount(totalAmount)
                     .status(ReservationStatus.BOOKED)
+                    .paymentStatus(PaymentStatus.PENDING)
                     .build();
 
             Reservation saved = reservationRepository.save(reservation);
@@ -246,7 +248,13 @@ public class BookingServiceImpl implements BookingService {
                     "Only CHECKED_IN bookings can be checked out"
             );
         }
-
+        
+        if (reservation.getPaymentStatus() != PaymentStatus.PAID) {
+            throw new InvalidReservationStateException(
+                    "Payment not completed yet"
+            );
+        }
+        
         StayRecord stayRecord = stayRecordRepository
                 .findByReservationId(reservation.getId())
                 .orElseThrow(() ->
@@ -255,6 +263,37 @@ public class BookingServiceImpl implements BookingService {
 
         stayRecord.setCheckOutTime(java.time.LocalDateTime.now());
         reservation.setStatus(ReservationStatus.CHECKED_OUT);
+    }
+    
+    @Override
+    public void pay(Long bookingId, String userEmail, String role) {
+
+        if (!"GUEST".equals(role)) {
+            throw new UnauthorizedException("Only GUEST can make payment");
+        }
+
+        Reservation reservation = reservationRepository.findById(bookingId)
+                .orElseThrow(() ->
+                        new ReservationNotFoundException("Booking not found")
+                );
+
+        if (!reservation.getUserEmail().equals(userEmail)) {
+            throw new UnauthorizedException("Access denied");
+        }
+
+        if (reservation.getStatus() != ReservationStatus.CONFIRMED) {
+            throw new InvalidReservationStateException(
+                    "Payment allowed only for CONFIRMED bookings"
+            );
+        }
+
+        if (reservation.getPaymentStatus() == PaymentStatus.PAID) {
+            throw new InvalidReservationStateException(
+                    "Payment already completed"
+            );
+        }
+
+        reservation.setPaymentStatus(PaymentStatus.PAID);
     }
 
 }
