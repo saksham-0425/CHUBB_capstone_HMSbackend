@@ -33,7 +33,10 @@ public class JwtAuthenticationFilter implements GlobalFilter {
         if (path.equals("/auth/internal/receptionists")) {
             return authorize(exchange, chain, "MANAGER");
         }
-
+        
+        if (path.matches("/hotels/.*/availability")) {
+            return chain.filter(exchange);
+        }
         // PUBLIC APIs
         if (
             path.startsWith("/auth/") ||
@@ -41,7 +44,8 @@ public class JwtAuthenticationFilter implements GlobalFilter {
                 (
                     path.equals("/hotels") ||
                     path.startsWith("/hotels/search") ||
-                    path.matches("/hotels/\\d+")
+                    path.matches("/hotels/\\d+") ||
+                    path.matches("/hotels/.+/categories")
                 )
             )
         ) {

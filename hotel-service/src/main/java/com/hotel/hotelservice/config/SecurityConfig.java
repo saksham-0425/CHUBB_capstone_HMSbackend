@@ -21,7 +21,8 @@ public class SecurityConfig {
                     "/hotels",
                     "/hotels/**",
                     "/swagger-ui/**",
-                    "/v3/api-docs/**"
+                    "/v3/api-docs/**",
+                    "/hotels/*/categories"
                 ).permitAll()
                 // Everything else is allowed because
                 // RBAC is handled in service layer

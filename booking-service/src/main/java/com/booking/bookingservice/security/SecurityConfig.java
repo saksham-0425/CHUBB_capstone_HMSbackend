@@ -28,7 +28,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/availability/**",
-                    "/actuator/**"
+                    "/actuator/**",
+                    "/hotels/*/availability"
                 ).permitAll()
                 .anyRequest().authenticated()
             );

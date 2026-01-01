@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 public class RoomCategoryResponseDto {
 
     private Long id;
-    private String name;
+    private String category;
     private Integer totalRooms;
     private BigDecimal basePrice;
     private boolean active;

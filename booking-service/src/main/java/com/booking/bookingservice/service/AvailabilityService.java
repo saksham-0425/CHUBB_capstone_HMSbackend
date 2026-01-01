@@ -2,6 +2,8 @@ package com.booking.bookingservice.service;
 
 import java.time.LocalDate;
 
+import com.booking.bookingservice.dto.response.HotelAvailabilityResponse;
+
 public interface AvailabilityService {
 
     boolean isAvailable(
@@ -24,4 +26,11 @@ public interface AvailabilityService {
             LocalDate checkIn,
             LocalDate checkOut
     );
+    
+    HotelAvailabilityResponse getHotelAvailability(
+            Long hotelId,
+            LocalDate checkIn,
+            LocalDate checkOut
+    );
+
 }

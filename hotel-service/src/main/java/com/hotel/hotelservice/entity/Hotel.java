@@ -33,7 +33,7 @@ public class Hotel {
     
 //    Email of the manager assigned to this hotel
 //    Comes from auth-service
-     
+    
     @Column(nullable = false)
     private String managerEmail;
 

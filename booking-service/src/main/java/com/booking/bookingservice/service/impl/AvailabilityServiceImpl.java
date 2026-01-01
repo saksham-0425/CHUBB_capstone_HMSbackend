@@ -1,13 +1,18 @@
 package com.booking.bookingservice.service.impl;
 
 import com.booking.bookingservice.client.HotelServiceClient;
+import com.booking.bookingservice.dto.response.CategoryAvailabilityResponse;
+import com.booking.bookingservice.dto.response.HotelAvailabilityResponse;
+import com.booking.bookingservice.dto.response.RoomCategoryResponseDto;
 import com.booking.bookingservice.service.AvailabilityService;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+
 
 @Service
 @RequiredArgsConstructor
@@ -116,4 +121,52 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
         return Integer.parseInt(value);
     }
+    
+    @Override
+    public HotelAvailabilityResponse getHotelAvailability(
+            Long hotelId,
+            LocalDate checkIn,
+            LocalDate checkOut
+    ) {
+
+        List<RoomCategoryResponseDto> categories =
+                hotelServiceClient.getCategoriesByHotel(hotelId);
+
+        List<CategoryAvailabilityResponse> availability = new ArrayList<>();
+
+        for (RoomCategoryResponseDto category : categories) {
+
+            int minAvailable = Integer.MAX_VALUE;
+            LocalDate date = checkIn;
+
+            while (date.isBefore(checkOut)) {
+
+                Integer available = initializeIfMissing(
+                        hotelId,
+                        category.getId(),
+                        date
+                );
+
+                minAvailable = Math.min(minAvailable, available);
+                date = date.plusDays(1);
+            }
+
+            availability.add(
+                    new CategoryAvailabilityResponse(
+                            category.getId(),
+                            category.getCategory(),
+                            minAvailable,
+                            category.getBasePrice()
+                    )
+            );
+        }
+
+        return new HotelAvailabilityResponse(
+                hotelId,
+                checkIn,
+                checkOut,
+                availability
+        );
+    }
+
 }
