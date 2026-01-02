@@ -16,7 +16,10 @@ public class BookingEventConsumer {
 
     private final NotificationService notificationService;
 
-    @RabbitListener(queues = "notification.queue")
+    @RabbitListener(
+    	    queues = "notification.queue",
+    	    containerFactory = "rabbitListenerContainerFactory"
+    	)
     public void handleBookingEvent(BookingEventDTO event) {
 
         log.info(

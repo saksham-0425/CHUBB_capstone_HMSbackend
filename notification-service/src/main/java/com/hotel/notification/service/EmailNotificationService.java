@@ -3,6 +3,8 @@ package com.hotel.notification.service;
 import com.hotel.notification.dto.BookingEventDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -13,17 +15,22 @@ import org.springframework.stereotype.Service;
 public class EmailNotificationService {
 
     private final JavaMailSender mailSender;
+    @Value("${spring.mail.username}")
+    private String from;
 
     private void sendEmail(String to, String subject, String body) {
 
         SimpleMailMessage message = new SimpleMailMessage();
+        
+
+        message.setFrom(from);
         message.setTo(to);
         message.setSubject(subject);
         message.setText(body);
 
         mailSender.send(message);
 
-        log.info("✅ Email sent successfully to {}", to);
+        log.info("Email sent successfully to {}", to);
     }
 
     public void sendBookingCreated(BookingEventDTO event) {
