@@ -17,6 +17,8 @@ import com.booking.bookingservice.service.AvailabilityService;
 import com.booking.bookingservice.service.BookingService;
 import com.booking.bookingservice.util.BookingReferenceGenerator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -101,10 +104,15 @@ public class BookingServiceImpl implements BookingService {
             Reservation saved = reservationRepository.save(reservation);
 
 
-            bookingEventPublisher.publish(
-                    "booking.created",
-                    buildEvent("BOOKING_CREATED", saved, category)
-            );
+            try {
+                bookingEventPublisher.publish(
+                        "booking.created",
+                        buildEvent("BOOKING_CREATED", saved, category)
+                );
+            } catch (Exception e) {
+                log.error("Failed to publish BOOKING_CREATED event for bookingId={}",
+                        saved.getId(), e);
+            }
 
             return mapToResponse(saved);
 
@@ -173,12 +181,20 @@ public class BookingServiceImpl implements BookingService {
                 reservation.getCheckInDate(),
                 reservation.getCheckOutDate()
         );
-
-  
-        bookingEventPublisher.publish(
-                "booking.cancelled",
-                buildEvent("BOOKING_CANCELLED", reservation, null)
-        );
+        
+        try {
+            bookingEventPublisher.publish(
+                    "booking.cancelled",
+                    buildEvent("BOOKING_CANCELLED", reservation, null)
+            );
+        } catch (Exception e) {
+            log.error(
+                    "Failed to publish BOOKING_CANCELLED event for bookingId={}",
+                    reservation.getId(),
+                    e
+            );
+        }
+        
     }
 
     @Override
@@ -197,12 +213,17 @@ public class BookingServiceImpl implements BookingService {
                 );
 
         reservation.setStatus(ReservationStatus.CONFIRMED);
+        
+        try {
+            bookingEventPublisher.publish(
+                    "booking.confirmed",
+                    buildEvent("BOOKING_CONFIRMED", reservation, null)
+            );
+        } catch (Exception e) {
+            log.error("Failed to publish BOOKING_CONFIRMED event for bookingId={}",
+                    reservation.getId(), e);
+        }
 
-
-        bookingEventPublisher.publish(
-                "booking.confirmed",
-                buildEvent("BOOKING_CONFIRMED", reservation, null)
-        );
 
         return mapToResponse(reservation);
     }
