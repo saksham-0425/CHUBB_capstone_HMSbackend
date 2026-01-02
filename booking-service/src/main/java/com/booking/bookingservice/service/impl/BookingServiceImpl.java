@@ -1,9 +1,11 @@
 package com.booking.bookingservice.service.impl;
 
 import com.booking.bookingservice.client.HotelServiceClient;
+import com.booking.bookingservice.event.BookingEventDTO;
 import com.booking.bookingservice.dto.request.CreateBookingRequest;
 import com.booking.bookingservice.dto.response.BookingResponse;
 import com.booking.bookingservice.dto.response.RoomCategoryResponseDto;
+import com.booking.bookingservice.event.BookingEventPublisher;
 import com.booking.bookingservice.exception.*;
 import com.booking.bookingservice.model.PaymentStatus;
 import com.booking.bookingservice.model.Reservation;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Service
@@ -30,6 +33,8 @@ public class BookingServiceImpl implements BookingService {
     private final HotelServiceClient hotelServiceClient;
     private final AvailabilityService availabilityService;
     private final StayRecordRepository stayRecordRepository;
+    private final BookingEventPublisher bookingEventPublisher;
+
 
     @Override
     public BookingResponse createBooking(
@@ -46,13 +51,11 @@ public class BookingServiceImpl implements BookingService {
             throw new IllegalArgumentException("Invalid date range");
         }
 
-        // Validate hotel & category
         RoomCategoryResponseDto category =
                 hotelServiceClient.getCategoryById(
                         request.getRoomCategoryId()
                 );
 
-        // Availability check
         boolean available = availabilityService.isAvailable(
                 request.getHotelId(),
                 request.getRoomCategoryId(),
@@ -64,7 +67,6 @@ public class BookingServiceImpl implements BookingService {
             throw new RoomNotAvailableException("Room not available");
         }
 
-        // Reserve first (atomic)
         availabilityService.reserve(
                 request.getHotelId(),
                 request.getRoomCategoryId(),
@@ -98,11 +100,16 @@ public class BookingServiceImpl implements BookingService {
 
             Reservation saved = reservationRepository.save(reservation);
 
+
+            bookingEventPublisher.publish(
+                    "booking.created",
+                    buildEvent("BOOKING_CREATED", saved, category)
+            );
+
             return mapToResponse(saved);
 
         } catch (Exception ex) {
 
-            // rollback Redis reservation
             availabilityService.release(
                     request.getHotelId(),
                     request.getRoomCategoryId(),
@@ -112,6 +119,7 @@ public class BookingServiceImpl implements BookingService {
             throw ex;
         }
     }
+
 
     @Override
     public BookingResponse getBooking(
@@ -132,6 +140,7 @@ public class BookingServiceImpl implements BookingService {
 
         return mapToResponse(reservation);
     }
+
 
     @Override
     public void cancelBooking(
@@ -164,6 +173,12 @@ public class BookingServiceImpl implements BookingService {
                 reservation.getCheckInDate(),
                 reservation.getCheckOutDate()
         );
+
+  
+        bookingEventPublisher.publish(
+                "booking.cancelled",
+                buildEvent("BOOKING_CANCELLED", reservation, null)
+        );
     }
 
     @Override
@@ -183,22 +198,15 @@ public class BookingServiceImpl implements BookingService {
 
         reservation.setStatus(ReservationStatus.CONFIRMED);
 
+
+        bookingEventPublisher.publish(
+                "booking.confirmed",
+                buildEvent("BOOKING_CONFIRMED", reservation, null)
+        );
+
         return mapToResponse(reservation);
     }
 
-    private BookingResponse mapToResponse(Reservation r) {
-        return BookingResponse.builder()
-                .bookingId(r.getId())
-                .bookingReference(r.getBookingReference())
-                .status(r.getStatus())
-                .hotelId(r.getHotelId())
-                .roomCategoryId(r.getRoomCategoryId())
-                .checkInDate(r.getCheckInDate())
-                .checkOutDate(r.getCheckOutDate())
-                .totalAmount(r.getTotalAmount())
-                .build();
-    }
-    
     @Override
     public void checkIn(Long bookingId, String role) {
 
@@ -223,12 +231,13 @@ public class BookingServiceImpl implements BookingService {
 
         StayRecord stayRecord = StayRecord.builder()
                 .reservation(reservation)
-                .checkInTime(java.time.LocalDateTime.now())
+                .checkInTime(LocalDateTime.now())
                 .build();
 
         stayRecordRepository.save(stayRecord);
     }
-    
+
+
     @Override
     public void checkOut(Long bookingId, String role) {
 
@@ -248,23 +257,23 @@ public class BookingServiceImpl implements BookingService {
                     "Only CHECKED_IN bookings can be checked out"
             );
         }
-        
+
         if (reservation.getPaymentStatus() != PaymentStatus.PAID) {
             throw new InvalidReservationStateException(
                     "Payment not completed yet"
             );
         }
-        
+
         StayRecord stayRecord = stayRecordRepository
                 .findByReservationId(reservation.getId())
                 .orElseThrow(() ->
                         new IllegalStateException("Stay record missing")
                 );
 
-        stayRecord.setCheckOutTime(java.time.LocalDateTime.now());
+        stayRecord.setCheckOutTime(LocalDateTime.now());
         reservation.setStatus(ReservationStatus.CHECKED_OUT);
     }
-    
+
     @Override
     public void pay(Long bookingId, String userEmail, String role) {
 
@@ -296,4 +305,36 @@ public class BookingServiceImpl implements BookingService {
         reservation.setPaymentStatus(PaymentStatus.PAID);
     }
 
+    private BookingEventDTO buildEvent(
+            String eventType,
+            Reservation r,
+            RoomCategoryResponseDto category
+    ) {
+        return BookingEventDTO.builder()
+                .eventType(eventType)
+                .bookingId(r.getId())
+                .guestEmail(r.getUserEmail())
+                .guestName(r.getUserEmail())
+                .hotelName("HOTEL")
+                .roomCategory(
+                        category != null ? category.getCategory() : "ROOM"
+                )
+                .checkInDate(r.getCheckInDate())
+                .checkOutDate(r.getCheckOutDate())
+                .eventTime(LocalDateTime.now())
+                .build();
+    }
+
+    private BookingResponse mapToResponse(Reservation r) {
+        return BookingResponse.builder()
+                .bookingId(r.getId())
+                .bookingReference(r.getBookingReference())
+                .status(r.getStatus())
+                .hotelId(r.getHotelId())
+                .roomCategoryId(r.getRoomCategoryId())
+                .checkInDate(r.getCheckInDate())
+                .checkOutDate(r.getCheckOutDate())
+                .totalAmount(r.getTotalAmount())
+                .build();
+    }
 }

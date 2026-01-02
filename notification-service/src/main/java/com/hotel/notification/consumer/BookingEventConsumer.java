@@ -28,7 +28,6 @@ public class BookingEventConsumer {
         try {
             notificationService.processEvent(event);
         } catch (Exception ex) {
-            // IMPORTANT: Do NOT throw exception unless you want requeue
             log.error(
                 "Failed to process booking event. bookingId={}, eventType={}",
                 event.getBookingId(),
@@ -36,7 +35,6 @@ public class BookingEventConsumer {
                 ex
             );
 
-            // Let RabbitMQ retry based on configuration
             throw ex;
         }
     }
