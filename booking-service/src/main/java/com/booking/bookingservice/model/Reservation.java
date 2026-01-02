@@ -55,5 +55,9 @@ public class Reservation {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus;
+    @Column(nullable = false)
+    private Boolean checkInReminderSent = false;
+    @Column(nullable = false)
+    private Boolean checkOutReminderSent = false;
 
 }
