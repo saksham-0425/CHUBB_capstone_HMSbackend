@@ -1,6 +1,8 @@
 package com.booking.bookingservice.client;
 
 import com.booking.bookingservice.config.FeignConfig;
+import com.booking.bookingservice.dto.request.AllocateRoomRequest;
+import com.booking.bookingservice.dto.request.ReleaseRoomRequest;
 import com.booking.bookingservice.dto.response.HotelResponseDto;
 import com.booking.bookingservice.dto.response.RoomCategoryResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -31,4 +33,10 @@ public interface HotelServiceClient {
     RoomCategoryResponseDto getCategoryById(
             @PathVariable Long categoryId
     );
+    
+    @PostMapping("/internal/room-allocations")
+    void allocateRoom(@RequestBody AllocateRoomRequest request);
+
+    @PostMapping("/internal/room-allocations/release")
+    void releaseRoom(@RequestBody ReleaseRoomRequest request);
 }

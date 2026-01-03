@@ -2,7 +2,9 @@ package com.booking.bookingservice.service.impl;
 
 import com.booking.bookingservice.client.HotelServiceClient;
 import com.booking.bookingservice.event.BookingEventDTO;
+import com.booking.bookingservice.dto.request.AllocateRoomRequest;
 import com.booking.bookingservice.dto.request.CreateBookingRequest;
+import com.booking.bookingservice.dto.request.ReleaseRoomRequest;
 import com.booking.bookingservice.dto.response.BookingResponse;
 import com.booking.bookingservice.dto.response.RoomCategoryResponseDto;
 import com.booking.bookingservice.event.BookingEventPublisher;
@@ -272,6 +274,8 @@ public class BookingServiceImpl implements BookingService {
                     "Only CONFIRMED bookings can be checked in"
             );
         }
+        
+        
 
         reservation.setStatus(ReservationStatus.CHECKED_IN);
 
@@ -281,6 +285,14 @@ public class BookingServiceImpl implements BookingService {
                 .build();
 
         stayRecordRepository.save(stayRecord);
+        
+        hotelServiceClient.allocateRoom(
+                new AllocateRoomRequest(
+                        reservation.getId(),
+                        reservation.getHotelId(),
+                        reservation.getRoomCategoryId()
+                )
+        );
     }
 
 
@@ -318,6 +330,10 @@ public class BookingServiceImpl implements BookingService {
 
         stayRecord.setCheckOutTime(LocalDateTime.now());
         reservation.setStatus(ReservationStatus.CHECKED_OUT);
+        
+        hotelServiceClient.releaseRoom(
+                new ReleaseRoomRequest(reservation.getId())
+        );
     }
 
     @Override
