@@ -21,10 +21,11 @@ public class RoomAllocationInternalController {
     public ResponseEntity<Void> allocateRoom(
             @RequestBody AllocateRoomRequest request
     ) {
-        roomAllocationService.allocateRoom(
+        roomAllocationService.allocateRooms(
                 request.getBookingId(),
                 request.getHotelId(),
-                request.getCategoryId()
+                request.getCategoryId(),
+                request.getNumberOfRooms()
         );
         return ResponseEntity.ok().build();
     }
@@ -34,7 +35,7 @@ public class RoomAllocationInternalController {
     public ResponseEntity<Void> releaseRoom(
             @RequestBody ReleaseRoomRequest request
     ) {
-        roomAllocationService.releaseRoom(request.getBookingId());
+        roomAllocationService.releaseRooms(request.getBookingId());
         return ResponseEntity.ok().build();
     }
 }

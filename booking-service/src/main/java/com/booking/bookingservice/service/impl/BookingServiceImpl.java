@@ -286,11 +286,12 @@ public class BookingServiceImpl implements BookingService {
 
         stayRecordRepository.save(stayRecord);
         
-        hotelServiceClient.allocateRoom(
+        hotelServiceClient.allocateRooms(
                 new AllocateRoomRequest(
                         reservation.getId(),
                         reservation.getHotelId(),
-                        reservation.getRoomCategoryId()
+                        reservation.getRoomCategoryId(),
+                        reservation.getNumberOfRooms()
                 )
         );
     }
@@ -331,7 +332,7 @@ public class BookingServiceImpl implements BookingService {
         stayRecord.setCheckOutTime(LocalDateTime.now());
         reservation.setStatus(ReservationStatus.CHECKED_OUT);
         
-        hotelServiceClient.releaseRoom(
+        hotelServiceClient.releaseRooms(
                 new ReleaseRoomRequest(reservation.getId())
         );
     }

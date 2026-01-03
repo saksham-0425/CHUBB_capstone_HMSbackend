@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.hotel.hotelservice.entity.RoomAllocation;
+import java.util.List;
 
 public interface RoomAllocationRepository
 extends JpaRepository<RoomAllocation, Long> {
@@ -12,4 +13,5 @@ extends JpaRepository<RoomAllocation, Long> {
 Optional<RoomAllocation> findByRoomIdAndReleasedAtIsNull(Long roomId);
 
 Optional<RoomAllocation> findByBookingIdAndReleasedAtIsNull(Long bookingId);
+List<RoomAllocation> findAllByBookingIdAndReleasedAtIsNull(Long bookingId);
 }

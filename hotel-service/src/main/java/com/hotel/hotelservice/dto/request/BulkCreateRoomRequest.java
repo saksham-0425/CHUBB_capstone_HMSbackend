@@ -5,9 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class AllocateRoomRequest {
-    private Long bookingId;
-    private Long hotelId;
+public class BulkCreateRoomRequest {
     private Long categoryId;
-    private Integer numberOfRooms;
+    private Integer start;
+    private Integer end;
 }

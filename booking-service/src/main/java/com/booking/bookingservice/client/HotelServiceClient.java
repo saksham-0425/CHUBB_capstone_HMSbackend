@@ -35,8 +35,8 @@ public interface HotelServiceClient {
     );
     
     @PostMapping("/internal/room-allocations")
-    void allocateRoom(@RequestBody AllocateRoomRequest request);
+    void allocateRooms(@RequestBody AllocateRoomRequest request);
 
     @PostMapping("/internal/room-allocations/release")
-    void releaseRoom(@RequestBody ReleaseRoomRequest request);
+    void releaseRooms(@RequestBody ReleaseRoomRequest request);
 }

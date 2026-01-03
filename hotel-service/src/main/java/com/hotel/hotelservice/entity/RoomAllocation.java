@@ -33,7 +33,7 @@ public class RoomAllocation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "booking_id", nullable = false, unique = true)
+    @Column(name = "booking_id", nullable = false)
     private Long bookingId;
 
     @Column(name = "room_id", nullable = false)
