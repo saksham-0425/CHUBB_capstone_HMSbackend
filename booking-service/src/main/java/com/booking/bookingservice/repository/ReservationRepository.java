@@ -22,5 +22,6 @@ public interface ReservationRepository
             ReservationStatus status,
             LocalDate checkOutDate
     );
+    List<Reservation> findByUserEmailOrderByCheckInDateDesc(String userEmail);
 
 }

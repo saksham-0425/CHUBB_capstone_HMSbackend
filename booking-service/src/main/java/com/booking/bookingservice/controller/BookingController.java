@@ -5,6 +5,9 @@ import com.booking.bookingservice.dto.response.BookingResponse;
 import com.booking.bookingservice.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -90,4 +93,30 @@ public class BookingController {
         bookingService.pay(id, email, role);
         return ResponseEntity.ok().build();
     }
+    
+ // GUEST / ADMIN → View booking by reference
+    @GetMapping("/reference/{bookingReference}")
+    public ResponseEntity<BookingResponse> getBookingByReference(
+            @PathVariable String bookingReference,
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        return ResponseEntity.ok(
+                bookingService.getBookingByReference(
+                        bookingReference, email, role
+                )
+        );
+    }
+    
+ // GUEST → View my bookings
+    @GetMapping("/my")
+    public ResponseEntity<List<BookingResponse>> getMyBookings(
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        return ResponseEntity.ok(
+                bookingService.getMyBookings(email, role)
+        );
+    }
+
 }

@@ -18,6 +18,7 @@ import com.booking.bookingservice.service.BookingService;
 import com.booking.bookingservice.util.BookingReferenceGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -349,7 +350,43 @@ public class BookingServiceImpl implements BookingService {
 
         reservation.setPaymentStatus(PaymentStatus.PAID);
     }
+   
+    @Override
+    public BookingResponse getBookingByReference(
+            String bookingReference,
+            String userEmail,
+            String role
+    ) {
+        Reservation reservation = reservationRepository
+                .findByBookingReference(bookingReference)
+                .orElseThrow(() ->
+                        new ReservationNotFoundException("Booking not found")
+                );
 
+        if ("GUEST".equals(role)
+                && !reservation.getUserEmail().equals(userEmail)) {
+            throw new UnauthorizedException("Access denied");
+        }
+
+        return mapToResponse(reservation);
+    }
+    
+    
+    @Override
+    public List<BookingResponse> getMyBookings(String userEmail, String role) {
+
+        if (!"GUEST".equals(role)) {
+            throw new UnauthorizedException("Only GUEST can view their bookings");
+        }
+
+        return reservationRepository
+                .findByUserEmailOrderByCheckInDateDesc(userEmail)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    
     private BookingEventDTO buildEvent(
             String eventType,
             Reservation r,

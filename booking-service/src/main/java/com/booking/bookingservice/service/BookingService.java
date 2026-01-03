@@ -2,7 +2,7 @@ package com.booking.bookingservice.service;
 
 import com.booking.bookingservice.dto.request.CreateBookingRequest;
 import com.booking.bookingservice.dto.response.BookingResponse;
-
+import java.util.List;
 public interface BookingService {
 
     BookingResponse createBooking(
@@ -33,4 +33,12 @@ public interface BookingService {
     void checkOut(Long bookingId, String role);
     
     void pay(Long bookingId, String userEmail, String role);
+    
+    BookingResponse getBookingByReference(
+            String bookingReference,
+            String userEmail,
+            String role
+    );
+    
+    List<BookingResponse> getMyBookings(String userEmail, String role);
 }
