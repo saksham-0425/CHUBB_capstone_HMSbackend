@@ -24,6 +24,12 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
         String path = exchange.getRequest().getURI().getPath();
         String method = exchange.getRequest().getMethod().name();
+        
+        if (exchange.getRequest().getMethod().name().equals("OPTIONS")) {
+            exchange.getResponse().setStatusCode(HttpStatus.OK);
+            return exchange.getResponse().setComplete();
+        }
+
 
 
         if (path.equals("/auth/internal/create-manager")) {

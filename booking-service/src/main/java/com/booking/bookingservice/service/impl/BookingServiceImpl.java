@@ -58,12 +58,27 @@ public class BookingServiceImpl implements BookingService {
                 hotelServiceClient.getCategoryById(
                         request.getRoomCategoryId()
                 );
+        
+        int maxAllowedGuests =
+                category.getCapacity() * request.getNumberOfRooms();
 
+        if (request.getNumberOfGuests() > maxAllowedGuests) {
+            throw new InvalidGuestCountException(
+                    String.format(
+                            "Maximum allowed guests for %d %s room(s) is %d",
+                            request.getNumberOfRooms(),
+                            category.getCategory(),
+                            maxAllowedGuests
+                    )
+            );
+        }
+        
         boolean available = availabilityService.isAvailable(
                 request.getHotelId(),
                 request.getRoomCategoryId(),
                 request.getCheckInDate(),
-                request.getCheckOutDate()
+                request.getCheckOutDate(),
+                request.getNumberOfRooms()
         );
 
         if (!available) {
@@ -74,7 +89,8 @@ public class BookingServiceImpl implements BookingService {
                 request.getHotelId(),
                 request.getRoomCategoryId(),
                 request.getCheckInDate(),
-                request.getCheckOutDate()
+                request.getCheckOutDate(),
+                request.getNumberOfRooms()
         );
 
         try {
@@ -86,11 +102,15 @@ public class BookingServiceImpl implements BookingService {
 
             BigDecimal totalAmount =
                     category.getBasePrice()
-                            .multiply(BigDecimal.valueOf(nights));
+                            .multiply(BigDecimal.valueOf(nights))
+                            .multiply(BigDecimal.valueOf(request.getNumberOfRooms()));
 
             Reservation reservation = Reservation.builder()
                     .bookingReference(BookingReferenceGenerator.generate())
                     .userEmail(userEmail)
+                    .guestName(request.getGuestName())
+                    .numberOfGuests(request.getNumberOfGuests())
+                    .numberOfRooms(request.getNumberOfRooms())
                     .hotelId(request.getHotelId())
                     .roomCategoryId(request.getRoomCategoryId())
                     .checkInDate(request.getCheckInDate())
@@ -99,6 +119,8 @@ public class BookingServiceImpl implements BookingService {
                     .totalAmount(totalAmount)
                     .status(ReservationStatus.BOOKED)
                     .paymentStatus(PaymentStatus.PENDING)
+                    .checkInReminderSent(false)     
+                    .checkOutReminderSent(false)
                     .build();
 
             Reservation saved = reservationRepository.save(reservation);
@@ -122,7 +144,8 @@ public class BookingServiceImpl implements BookingService {
                     request.getHotelId(),
                     request.getRoomCategoryId(),
                     request.getCheckInDate(),
-                    request.getCheckOutDate()
+                    request.getCheckOutDate(),
+                    request.getNumberOfRooms()
             );
             throw ex;
         }
@@ -179,7 +202,8 @@ public class BookingServiceImpl implements BookingService {
                 reservation.getHotelId(),
                 reservation.getRoomCategoryId(),
                 reservation.getCheckInDate(),
-                reservation.getCheckOutDate()
+                reservation.getCheckOutDate(),
+                reservation.getNumberOfRooms()
         );
         
         try {
@@ -335,7 +359,7 @@ public class BookingServiceImpl implements BookingService {
                 .eventType(eventType)
                 .bookingId(r.getId())
                 .guestEmail(r.getUserEmail())
-                .guestName(r.getUserEmail())
+                .guestName(r.getGuestName())
                 .hotelName("HOTEL")
                 .roomCategory(
                         category != null ? category.getCategory() : "ROOM"
@@ -350,6 +374,9 @@ public class BookingServiceImpl implements BookingService {
         return BookingResponse.builder()
                 .bookingId(r.getId())
                 .bookingReference(r.getBookingReference())
+                .guestName(r.getGuestName())
+                .numberOfGuests(r.getNumberOfGuests())
+                .numberOfRooms(r.getNumberOfRooms())
                 .status(r.getStatus())
                 .hotelId(r.getHotelId())
                 .roomCategoryId(r.getRoomCategoryId())

@@ -10,21 +10,24 @@ public interface AvailabilityService {
             Long hotelId,
             Long categoryId,
             LocalDate checkIn,
-            LocalDate checkOut
+            LocalDate checkOut,
+            int numberOfRooms
     );
 
     void reserve(
             Long hotelId,
             Long categoryId,
             LocalDate checkIn,
-            LocalDate checkOut
+            LocalDate checkOut,
+            int numberOfRooms
     );
 
     void release(
             Long hotelId,
             Long categoryId,
             LocalDate checkIn,
-            LocalDate checkOut
+            LocalDate checkOut,
+            int numberOfRooms
     );
     
     HotelAvailabilityResponse getHotelAvailability(

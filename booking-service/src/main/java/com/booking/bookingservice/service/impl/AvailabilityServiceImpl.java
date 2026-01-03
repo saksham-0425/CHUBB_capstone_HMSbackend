@@ -35,7 +35,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             Long hotelId,
             Long categoryId,
             LocalDate checkIn,
-            LocalDate checkOut
+            LocalDate checkOut,
+            int numberOfRooms
     ) {
 
         LocalDate date = checkIn;
@@ -46,7 +47,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                     hotelId, categoryId, date
             );
 
-            if (available <= 0) {
+            if (available < numberOfRooms) {
                 return false;
             }
 
@@ -61,7 +62,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             Long hotelId,
             Long categoryId,
             LocalDate checkIn,
-            LocalDate checkOut
+            LocalDate checkOut,
+            int numberOfRooms
     ) {
 
         LocalDate date = checkIn;
@@ -71,7 +73,10 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             initializeIfMissing(hotelId, categoryId, date);
 
             redisTemplate.opsForValue()
-                    .decrement(key(hotelId, categoryId, date));
+            .decrement(
+                key(hotelId, categoryId, date),
+                numberOfRooms
+            );
 
             date = date.plusDays(1);
         }
@@ -82,7 +87,8 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             Long hotelId,
             Long categoryId,
             LocalDate checkIn,
-            LocalDate checkOut
+            LocalDate checkOut,
+            int numberOfRooms
     ) {
 
         LocalDate date = checkIn;
@@ -92,7 +98,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
             initializeIfMissing(hotelId, categoryId, date);
 
             redisTemplate.opsForValue()
-                    .increment(key(hotelId, categoryId, date));
+                    .increment(key(hotelId, categoryId, date), numberOfRooms);
 
             date = date.plusDays(1);
         }

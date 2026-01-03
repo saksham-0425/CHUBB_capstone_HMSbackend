@@ -24,7 +24,7 @@ public class HotelController {
     private final HotelStaffService hotelStaffService;
 
 
-//      ADMIN → Create Hotel
+//      ADMIN -> Create Hotel
     @PostMapping
     public ResponseEntity<HotelResponse> createHotel(
             @RequestHeader("X-User-Role") String role,
@@ -35,7 +35,7 @@ public class HotelController {
     }
 
    
-//    ADMIN / MANAGER → Update Hotel
+//    ADMIN / MANAGER -> Update Hotel
     
     @PutMapping("/{hotelId}")
     public ResponseEntity<HotelResponse> updateHotel(
@@ -49,14 +49,14 @@ public class HotelController {
         return ResponseEntity.ok(response);
     }
 
-//   PUBLIC → Get all hotels
+//   PUBLIC -> Get all hotels
     @GetMapping
     public ResponseEntity<List<HotelResponse>> getAllHotels() {
         return ResponseEntity.ok(hotelService.getAllHotels());
     }
 
 
-//  PUBLIC → Search hotels by city
+//  PUBLIC -> Search hotels by city
     @GetMapping("/search")
     public ResponseEntity<List<HotelResponse>> searchHotelsByCity(
             @RequestParam String city
@@ -65,7 +65,7 @@ public class HotelController {
     }
 
 
-//      PUBLIC → Get hotel by ID
+//      PUBLIC -> Get hotel by ID
     @GetMapping("/{hotelId}")
     public ResponseEntity<HotelResponse> getHotelById(
             @PathVariable Long hotelId
@@ -73,6 +73,7 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.getHotelById(hotelId));
     }
     
+    // MANAGER -> add receptionist
     @PostMapping("/{hotelId}/receptionists")
     public ResponseEntity<Void> addReceptionist(
             @PathVariable Long hotelId,

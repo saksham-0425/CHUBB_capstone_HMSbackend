@@ -14,4 +14,5 @@ public class HotelAvailabilityResponse {
     private LocalDate checkIn;
     private LocalDate checkOut;
     private List<CategoryAvailabilityResponse> categories;
+
 }

@@ -26,6 +26,16 @@ public class Reservation {
     // Comes from JWT (gateway)
     @Column(nullable = false)
     private String userEmail;
+    
+   
+    @Column(nullable = false)
+    private String guestName;
+
+    @Column(nullable = false)
+    private Integer numberOfGuests;
+
+    @Column(nullable = false)
+    private Integer numberOfRooms;
 
     // Foreign references 
     @Column(nullable = false)

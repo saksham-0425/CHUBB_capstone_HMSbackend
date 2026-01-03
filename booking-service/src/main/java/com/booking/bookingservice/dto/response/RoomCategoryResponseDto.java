@@ -12,4 +12,5 @@ public class RoomCategoryResponseDto {
     private Integer totalRooms;
     private BigDecimal basePrice;
     private boolean active;
+    Integer capacity; 
 }

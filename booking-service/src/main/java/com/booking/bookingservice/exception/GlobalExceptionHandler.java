@@ -3,6 +3,7 @@ package com.booking.bookingservice.exception;
 import com.booking.bookingservice.dto.response.ApiErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -80,4 +81,16 @@ public class GlobalExceptionHandler {
                         .timestamp(LocalDateTime.now())
                         .build());
     }
+    
+    @ExceptionHandler(InvalidGuestCountException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidGuestCount(
+            InvalidGuestCountException ex) {
+
+        return build(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+    }
+
+
 }

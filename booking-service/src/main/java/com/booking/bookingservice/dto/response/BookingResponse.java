@@ -14,6 +14,9 @@ public class BookingResponse {
     private Long bookingId;
     private String bookingReference;
     private ReservationStatus status;
+    private String guestName;
+    private Integer numberOfGuests;
+    private Integer numberOfRooms;
 
     private Long hotelId;
     private Long roomCategoryId;
