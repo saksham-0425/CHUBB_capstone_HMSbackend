@@ -39,4 +39,10 @@ public interface HotelServiceClient {
 
     @PostMapping("/internal/room-allocations/release")
     void releaseRooms(@RequestBody ReleaseRoomRequest request);
+    
+    @GetMapping("/hotels/internal/manager")
+    HotelResponseDto getHotelByManager(
+        @RequestHeader("X-User-Email") String email,
+        @RequestHeader("X-User-Role") String role
+    );
 }

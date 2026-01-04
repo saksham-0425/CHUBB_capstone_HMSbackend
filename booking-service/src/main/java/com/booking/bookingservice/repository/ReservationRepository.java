@@ -23,5 +23,7 @@ public interface ReservationRepository
             LocalDate checkOutDate
     );
     List<Reservation> findByUserEmailOrderByCheckInDateDesc(String userEmail);
+    
+    List<Reservation> findByHotelId(Long hotelId);
 
 }

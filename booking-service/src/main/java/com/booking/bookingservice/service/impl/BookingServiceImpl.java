@@ -6,6 +6,7 @@ import com.booking.bookingservice.dto.request.AllocateRoomRequest;
 import com.booking.bookingservice.dto.request.CreateBookingRequest;
 import com.booking.bookingservice.dto.request.ReleaseRoomRequest;
 import com.booking.bookingservice.dto.response.BookingResponse;
+import com.booking.bookingservice.dto.response.HotelResponseDto;
 import com.booking.bookingservice.dto.response.RoomCategoryResponseDto;
 import com.booking.bookingservice.event.BookingEventPublisher;
 import com.booking.bookingservice.exception.*;
@@ -402,6 +403,20 @@ public class BookingServiceImpl implements BookingService {
                 .map(this::mapToResponse)
                 .toList();
     }
+    
+    @Override
+    public List<BookingResponse> getBookingsByHotel(Long hotelId, String role) {
+
+        if (!role.equals("ADMIN") && !role.equals("MANAGER")) {
+            throw new IllegalStateException("Unauthorized access");
+        }
+
+        return reservationRepository
+                .findByHotelId(hotelId)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
 
     
     private BookingEventDTO buildEvent(
@@ -438,5 +453,19 @@ public class BookingServiceImpl implements BookingService {
                 .checkOutDate(r.getCheckOutDate())
                 .totalAmount(r.getTotalAmount())
                 .build();
+    }
+    
+    @Override
+    public List<BookingResponse> getBookingsForManager(String managerEmail) {
+
+        HotelResponseDto hotel =
+            hotelServiceClient.getHotelByManager(managerEmail, "MANAGER");
+
+        List<Reservation>reservation =
+            reservationRepository.findByHotelId(hotel.getId());
+
+        return reservation.stream()
+            .map(this::mapToResponse)
+            .toList();
     }
 }

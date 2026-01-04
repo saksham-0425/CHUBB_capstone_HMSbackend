@@ -89,6 +89,28 @@ public class HotelController {
         );
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+    
+    @GetMapping("internal/manager")
+    public HotelResponse getHotelByManager(
+            @RequestHeader("X-User-Email") String managerEmail,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        if (!"MANAGER".equals(role)) {
+            throw new SecurityException("Only manager allowed");
+        }
 
+        return hotelService.getHotelByManagerEmail(managerEmail);
+    }
+   
+    @GetMapping("/internal/receptionist")
+    public HotelResponse getHotelByReceptionist(
+            @RequestHeader("X-User-Email") String receptionistEmail,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        if (!"RECEPTIONIST".equals(role)) {
+            throw new SecurityException("Only receptionist allowed");
+        }
 
+        return hotelService.getHotelByReceptionistEmail(receptionistEmail);
+    }
 }

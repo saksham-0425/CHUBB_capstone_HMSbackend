@@ -2,6 +2,7 @@ package com.booking.bookingservice.controller;
 
 import com.booking.bookingservice.dto.request.CreateBookingRequest;
 import com.booking.bookingservice.dto.response.BookingResponse;
+import com.booking.bookingservice.exception.UnauthorizedException;
 import com.booking.bookingservice.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -118,5 +119,20 @@ public class BookingController {
                 bookingService.getMyBookings(email, role)
         );
     }
+    
+    @GetMapping("/manager")
+    public ResponseEntity<List<BookingResponse>> getManagerBookings(
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader("X-User-Role") String role
+    ) {
+        if (!"MANAGER".equals(role)) {
+            throw new UnauthorizedException("Only MANAGER allowed");
+        }
+
+        return ResponseEntity.ok(
+            bookingService.getBookingsForManager(email)
+        );
+    }
+
 
 }

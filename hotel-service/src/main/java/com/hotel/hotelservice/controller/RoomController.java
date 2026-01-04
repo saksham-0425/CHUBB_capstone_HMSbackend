@@ -52,6 +52,8 @@ public class RoomController {
         return ResponseEntity.ok().build();
     }
     
+    
+//    ADMIN/MANAGER-> create physical rooms
     @PostMapping("/{hotelId}/rooms")
     public ResponseEntity<Void> createRoom(
             @PathVariable Long hotelId,
@@ -72,4 +74,15 @@ public class RoomController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @GetMapping("/{hotelId}/rooms")
+    public ResponseEntity<?> getRoomsByHotel(
+            @PathVariable Long hotelId,
+            @RequestHeader("X-User-Role") String role,
+            @RequestHeader("X-User-Email") String email
+    ) {
+        return ResponseEntity.ok(
+                roomService.getRoomsByHotel(hotelId, role, email)
+        );
+    }
+    
 }

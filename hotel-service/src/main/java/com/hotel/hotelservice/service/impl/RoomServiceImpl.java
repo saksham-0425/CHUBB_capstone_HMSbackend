@@ -10,8 +10,13 @@ import com.hotel.hotelservice.dto.request.BulkCreateRoomRequest;
 import com.hotel.hotelservice.dto.request.CreateRoomRequest;
 import com.hotel.hotelservice.dto.response.RoomResponse;
 import com.hotel.hotelservice.dto.response.RoomSuggestionResponse;
+import com.hotel.hotelservice.entity.Hotel;
 import com.hotel.hotelservice.entity.Room;
 import com.hotel.hotelservice.entity.RoomStatus;
+import com.hotel.hotelservice.exception.ResourceNotFoundException;
+import com.hotel.hotelservice.exception.UnauthorizedException;
+import com.hotel.hotelservice.repository.HotelRepository;
+import com.hotel.hotelservice.repository.RoomCategoryRepository;
 import com.hotel.hotelservice.repository.RoomRepository;
 import com.hotel.hotelservice.service.RoomService;
 
@@ -23,6 +28,8 @@ import lombok.RequiredArgsConstructor;
 public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
+    private final HotelRepository hotelRepository;
+    private final RoomCategoryRepository roomCategoryRepository;
 
     @Override
     public RoomSuggestionResponse suggestRoom(
@@ -47,15 +54,19 @@ public class RoomServiceImpl implements RoomService {
         }
 
         List<RoomResponse> responses = rooms.stream()
-                .map(r -> new RoomResponse(r.getId(), r.getRoomNumber()))
-                .toList();
+                .map(r -> RoomResponse.builder()
+                        .roomId(r.getId())          
+                        .roomNumber(r.getRoomNumber())
+                        .build()
+                )
+                .collect(java.util.stream.Collectors.toList());
 
         return new RoomSuggestionResponse(
                 responses.get(0),   // auto-suggested
                 responses           // full list
         );
     }
-    
+
     @Override
     @Transactional
     public void updateRoomStatus(Long roomId, String status, String role) {
@@ -103,7 +114,7 @@ public class RoomServiceImpl implements RoomService {
         room.setStatus(newStatus);
         roomRepository.save(room);
     }
-    
+
     @Override
     @Transactional
     public void createRoom(
@@ -131,7 +142,6 @@ public class RoomServiceImpl implements RoomService {
         roomRepository.save(room);
     }
 
-    
     @Override
     @Transactional
     public void bulkCreateRooms(
@@ -154,7 +164,7 @@ public class RoomServiceImpl implements RoomService {
 
             if (roomRepository.existsByHotelIdAndRoomNumber(
                     hotelId, roomNumber)) {
-                continue; // skip duplicates 
+                continue;
             }
 
             Room room = Room.builder()
@@ -166,6 +176,43 @@ public class RoomServiceImpl implements RoomService {
 
             roomRepository.save(room);
         }
+    }
+
+    @Override
+    public List<RoomResponse> getRoomsByHotel(
+            Long hotelId,
+            String role,
+            String email
+    ) {
+
+        if (!("ADMIN".equals(role) || "MANAGER".equals(role) || "RECEPTIONIST".equals(role))) {
+            throw new UnauthorizedException("Access denied");
+        }
+
+        Hotel hotel = hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found"));
+
+        if ("MANAGER".equals(role) && !hotel.getManagerEmail().equals(email)) {
+            throw new UnauthorizedException("Not your hotel");
+        }
+
+        return roomRepository.findByHotelId(hotelId)
+                .stream()
+                .map(room -> {
+
+                    String categoryName =
+                            roomCategoryRepository.findById(room.getCategoryId())
+                                    .map(c -> c.getCategory())
+                                    .orElse("UNKNOWN");
+
+                    return RoomResponse.builder()
+                            .roomId(room.getId())
+                            .roomNumber(room.getRoomNumber())
+                            .category(categoryName)
+                            .status(room.getStatus().name())
+                            .build();
+                })
+                .toList();
     }
 
 }

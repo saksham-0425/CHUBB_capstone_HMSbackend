@@ -12,12 +12,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.Getter;
 
 @Entity
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
 public class HotelStaff {
 
     @Id

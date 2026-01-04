@@ -18,4 +18,6 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
     
 // Optional: used if manager dashboard is added later 
     List<Hotel> findByManagerEmail(String managerEmail);
+    
+    Optional<Hotel> findFirstByManagerEmail(String managerEmail);
 }

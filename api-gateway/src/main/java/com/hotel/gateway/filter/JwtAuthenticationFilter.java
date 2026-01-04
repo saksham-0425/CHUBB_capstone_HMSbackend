@@ -29,7 +29,14 @@ public class JwtAuthenticationFilter implements GlobalFilter {
             exchange.getResponse().setStatusCode(HttpStatus.OK);
             return exchange.getResponse().setComplete();
         }
-
+        
+        if (path.equals("/hotels/internal/manager")) {
+            return authorize(exchange, chain, "MANAGER");
+        }
+        
+        if (path.equals("/hotels/internal/receptionist")) {
+            return authorize(exchange, chain, "RECEPTIONIST");
+        }
 
 
         if (path.equals("/auth/internal/create-manager")) {
@@ -43,6 +50,19 @@ public class JwtAuthenticationFilter implements GlobalFilter {
         if (path.matches("/hotels/.*/availability")) {
             return chain.filter(exchange);
         }
+        
+        if (path.matches("/hotels/.*/bookings")) {
+            return authorize(exchange, chain, "ADMIN");
+        }
+        
+        if (path.equals("/bookings/manager")) {
+            return authorize(exchange, chain, "MANAGER");
+        }
+        
+        if (path.matches("/hotels/\\d+/rooms") && "GET".equals(method)) {
+            return authorizeAndForward(exchange, chain);
+        }
+        
         // PUBLIC APIs
         if (
             path.startsWith("/auth/") ||

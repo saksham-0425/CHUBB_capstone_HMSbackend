@@ -41,4 +41,6 @@ public interface BookingService {
     );
     
     List<BookingResponse> getMyBookings(String userEmail, String role);
+    List<BookingResponse> getBookingsByHotel(Long hotelId, String role);
+    List<BookingResponse> getBookingsForManager(String managerEmail);
 }

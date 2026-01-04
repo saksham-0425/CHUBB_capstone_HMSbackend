@@ -7,12 +7,17 @@ import com.hotel.hotelservice.dto.request.UpdateHotelRequest;
 import com.hotel.hotelservice.dto.response.HotelResponse;
 import com.hotel.hotelservice.dto.response.RoomCategoryResponse;
 import com.hotel.hotelservice.entity.Hotel;
+import com.hotel.hotelservice.entity.HotelStaff;
+import com.hotel.hotelservice.entity.Role;
 import com.hotel.hotelservice.entity.RoomCategory;
 import com.hotel.hotelservice.exception.ResourceNotFoundException;
 import com.hotel.hotelservice.exception.UnauthorizedException;
 import com.hotel.hotelservice.repository.HotelRepository;
+import com.hotel.hotelservice.repository.HotelStaffRepository;
 import com.hotel.hotelservice.repository.RoomCategoryRepository;
 import com.hotel.hotelservice.service.HotelService;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +33,7 @@ public class HotelServiceImpl implements HotelService {
     private final HotelRepository hotelRepository;
     private final RoomCategoryRepository roomCategoryRepository;
     private final AuthClient authClient;
+    private final HotelStaffRepository hotelStaffRepository;
 
     @Override
     public HotelResponse createHotel(CreateHotelRequest request, String role) {
@@ -154,5 +160,34 @@ public class HotelServiceImpl implements HotelService {
     
     private String generateManagerPassword() {
         return "Manager@123"; 
+    }
+    
+    @Override
+    public HotelResponse getHotelByManagerEmail(String email) {
+
+        Hotel hotel = hotelRepository
+            .findFirstByManagerEmail(email)
+            .orElseThrow(() ->
+                new EntityNotFoundException("Hotel not found for manager")
+            );
+
+        return mapToHotelResponse(hotel);
+    }
+    
+    @Override
+    public HotelResponse getHotelByReceptionistEmail(String email) {
+
+        HotelStaff staff = hotelStaffRepository
+                .findByStaffEmailAndRole(email, Role.RECEPTIONIST)
+                .orElseThrow(() ->
+                    new ResourceNotFoundException("Receptionist not assigned to any hotel")
+                );
+
+        Hotel hotel = hotelRepository.findById(staff.getHotelId())
+                .orElseThrow(() ->
+                    new ResourceNotFoundException("Hotel not found")
+                );
+
+        return mapToHotelResponse(hotel);
     }
 }
