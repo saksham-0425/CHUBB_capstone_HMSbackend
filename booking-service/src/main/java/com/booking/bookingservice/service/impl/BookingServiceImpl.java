@@ -1,6 +1,7 @@
 package com.booking.bookingservice.service.impl;
 
 import com.booking.bookingservice.client.HotelServiceClient;
+import com.booking.bookingservice.client.ResilientHotelServiceClient;
 import com.booking.bookingservice.event.BookingEventDTO;
 import com.booking.bookingservice.dto.request.AllocateRoomRequest;
 import com.booking.bookingservice.dto.request.CreateBookingRequest;
@@ -37,7 +38,7 @@ import java.time.temporal.ChronoUnit;
 public class BookingServiceImpl implements BookingService {
 
     private final ReservationRepository reservationRepository;
-    private final HotelServiceClient hotelServiceClient;
+    private final ResilientHotelServiceClient hotelServiceClient;
     private final AvailabilityService availabilityService;
     private final StayRecordRepository stayRecordRepository;
     private final BookingEventPublisher bookingEventPublisher;
