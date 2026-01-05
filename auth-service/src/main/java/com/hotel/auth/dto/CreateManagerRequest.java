@@ -3,9 +3,11 @@ package com.hotel.auth.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.Builder;
 
 
 @Data
+@Builder
 public class CreateManagerRequest {
 
     @Email

@@ -39,8 +39,6 @@ public class AdminSeeder {
                     .build();
 
             userRepository.save(admin);
-
-            System.out.println(" Admin user seeded successfully");
         };
     }
 }

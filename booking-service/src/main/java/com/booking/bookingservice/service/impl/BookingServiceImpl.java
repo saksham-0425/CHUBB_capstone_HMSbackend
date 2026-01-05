@@ -1,6 +1,5 @@
 package com.booking.bookingservice.service.impl;
 
-import com.booking.bookingservice.client.HotelServiceClient;
 import com.booking.bookingservice.client.ResilientHotelServiceClient;
 import com.booking.bookingservice.event.BookingEventDTO;
 import com.booking.bookingservice.dto.request.AllocateRoomRequest;
@@ -42,7 +41,12 @@ public class BookingServiceImpl implements BookingService {
     private final AvailabilityService availabilityService;
     private final StayRecordRepository stayRecordRepository;
     private final BookingEventPublisher bookingEventPublisher;
-
+    
+    
+    private static final String ROLE_GUEST = "GUEST";
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_MANAGER = "MANAGER";
+    private static final String ROLE_RECEPTIONIST = "RECEPTIONIST";
 
     @Override
     public BookingResponse createBooking(
@@ -51,7 +55,7 @@ public class BookingServiceImpl implements BookingService {
             String role
     ) {
 
-        if (!"GUEST".equals(role)) {
+        if (!ROLE_GUEST.equals(role)) {
             throw new UnauthorizedException("Only GUEST can create bookings");
         }
 
@@ -169,7 +173,7 @@ public class BookingServiceImpl implements BookingService {
                         new ReservationNotFoundException("Booking not found")
                 );
 
-        if ("GUEST".equals(role)
+        if (ROLE_GUEST.equals(role)
                 && !reservation.getUserEmail().equals(userEmail)) {
             throw new UnauthorizedException("Access denied");
         }
@@ -196,7 +200,7 @@ public class BookingServiceImpl implements BookingService {
             );
         }
 
-        if ("GUEST".equals(role)
+        if (ROLE_GUEST.equals(role)
                 && !reservation.getUserEmail().equals(userEmail)) {
             throw new UnauthorizedException("Access denied");
         }
@@ -232,7 +236,7 @@ public class BookingServiceImpl implements BookingService {
             String role
     ) {
 
-        if (!("ADMIN".equals(role) || "MANAGER".equals(role))) {
+        if (!(ROLE_ADMIN.equals(role) || ROLE_MANAGER.equals(role))) {
             throw new UnauthorizedException("Access denied");
         }
 
@@ -260,9 +264,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void checkIn(Long bookingId, String role) {
 
-        if (!("RECEPTIONIST".equals(role)
-                || "MANAGER".equals(role)
-                || "ADMIN".equals(role))) {
+        if (!(ROLE_RECEPTIONIST.equals(role)
+                || ROLE_MANAGER.equals(role)
+                || ROLE_ADMIN.equals(role))) {
             throw new UnauthorizedException("Access denied");
         }
 
@@ -302,9 +306,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void checkOut(Long bookingId, String role) {
 
-        if (!("RECEPTIONIST".equals(role)
-                || "MANAGER".equals(role)
-                || "ADMIN".equals(role))) {
+        if (!(ROLE_RECEPTIONIST.equals(role)
+                || ROLE_MANAGER.equals(role)
+                || ROLE_ADMIN.equals(role))) {
             throw new UnauthorizedException("Access denied");
         }
 
@@ -342,7 +346,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public void pay(Long bookingId, String userEmail, String role) {
 
-        if (!"GUEST".equals(role)) {
+        if (!ROLE_GUEST.equals(role)) {
             throw new UnauthorizedException("Only GUEST can make payment");
         }
 
@@ -382,7 +386,7 @@ public class BookingServiceImpl implements BookingService {
                         new ReservationNotFoundException("Booking not found")
                 );
 
-        if ("GUEST".equals(role)
+        if (ROLE_GUEST.equals(role)
                 && !reservation.getUserEmail().equals(userEmail)) {
             throw new UnauthorizedException("Access denied");
         }
@@ -394,7 +398,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingResponse> getMyBookings(String userEmail, String role) {
 
-        if (!"GUEST".equals(role)) {
+        if (!ROLE_GUEST.equals(role)) {
             throw new UnauthorizedException("Only GUEST can view their bookings");
         }
 
@@ -408,7 +412,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingResponse> getBookingsByHotel(Long hotelId, String role) {
 
-        if (!role.equals("ADMIN") && !role.equals("MANAGER")) {
+        if (!role.equals(ROLE_ADMIN) && !role.equals(ROLE_MANAGER)) {
             throw new IllegalStateException("Unauthorized access");
         }
 
@@ -460,7 +464,7 @@ public class BookingServiceImpl implements BookingService {
     public List<BookingResponse> getBookingsForManager(String managerEmail) {
 
         HotelResponseDto hotel =
-            hotelServiceClient.getHotelByManager(managerEmail, "MANAGER");
+            hotelServiceClient.getHotelByManager(managerEmail, ROLE_MANAGER);
 
         List<Reservation>reservation =
             reservationRepository.findByHotelId(hotel.getId());

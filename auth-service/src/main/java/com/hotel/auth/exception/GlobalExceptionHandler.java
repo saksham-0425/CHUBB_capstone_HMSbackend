@@ -4,7 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
 import com.hotel.auth.dto.ApiErrorResponse;
 
 import java.time.LocalDateTime;
@@ -12,6 +11,10 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	
+
+    private static final String TIMESTAMP = "timestamp";
+    private static final String ERROR = "error";
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleUserExists(
@@ -19,8 +22,8 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 Map.of(
-                        "timestamp", LocalDateTime.now(),
-                        "error", ex.getMessage()
+                        TIMESTAMP, LocalDateTime.now(),
+                        ERROR, ex.getMessage()
                 )
         );
     }
@@ -31,8 +34,8 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                 Map.of(
-                        "timestamp", LocalDateTime.now(),
-                        "error", ex.getMessage()
+                        TIMESTAMP, LocalDateTime.now(),
+                        ERROR, ex.getMessage()
                 )
         );
     }
@@ -43,8 +46,8 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 Map.of(
-                        "timestamp", LocalDateTime.now(),
-                        "error", "Something went wrong"
+                        TIMESTAMP, LocalDateTime.now(),
+                        ERROR, "Something went wrong"
                 )
         );
     }

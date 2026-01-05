@@ -1,6 +1,5 @@
 package com.hotel.gateway.filter;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.http.HttpHeaders;
@@ -8,16 +7,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-
+import static com.hotel.gateway.filter.RoleConstants.*;
 import com.hotel.gateway.util.JwtUtil;
 
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GlobalFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+
+    private final JwtUtil jwtUtil;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -31,20 +32,20 @@ public class JwtAuthenticationFilter implements GlobalFilter {
         }
         
         if (path.equals("/hotels/internal/manager")) {
-            return authorize(exchange, chain, "MANAGER");
+            return authorize(exchange, chain, MANAGER);
         }
         
         if (path.equals("/hotels/internal/receptionist")) {
-            return authorize(exchange, chain, "RECEPTIONIST");
+            return authorize(exchange, chain, RECEPTIONIST);
         }
 
 
         if (path.equals("/auth/internal/create-manager")) {
-            return authorize(exchange, chain, "ADMIN");
+            return authorize(exchange, chain, ADMIN);
         }
 
         if (path.equals("/auth/internal/receptionists")) {
-            return authorize(exchange, chain, "MANAGER");
+            return authorize(exchange, chain, MANAGER);
         }
         
         if (path.matches("/hotels/.*/availability")) {
@@ -52,11 +53,11 @@ public class JwtAuthenticationFilter implements GlobalFilter {
         }
         
         if (path.matches("/hotels/.*/bookings")) {
-            return authorize(exchange, chain, "ADMIN");
+            return authorize(exchange, chain, ADMIN);
         }
         
         if (path.equals("/bookings/manager")) {
-            return authorize(exchange, chain, "MANAGER");
+            return authorize(exchange, chain, MANAGER);
         }
         
         if (path.matches("/hotels/\\d+/rooms") && "GET".equals(method)) {

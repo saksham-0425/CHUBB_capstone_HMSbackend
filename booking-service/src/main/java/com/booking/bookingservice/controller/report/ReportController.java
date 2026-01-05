@@ -37,8 +37,6 @@ public class ReportController {
             @RequestHeader("X-User-Role") String role,
             @RequestHeader("X-User-Email") String email
     ) {
-    	System.out.println(">>> REPORT CONTROLLER HIT <<<");
-        System.out.println("hotelId=" + hotelId + ", from=" + from + ", to=" + to);
     	
     	return ResponseEntity.ok(
                 reportService.getOccupancyReport(

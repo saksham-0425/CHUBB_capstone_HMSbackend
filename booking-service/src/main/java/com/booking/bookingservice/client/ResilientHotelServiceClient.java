@@ -10,7 +10,6 @@ import com.booking.bookingservice.dto.response.HotelResponseDto;
 import com.booking.bookingservice.dto.response.RoomCategoryResponseDto;
 import com.booking.bookingservice.exception.ServiceUnavailableException;
 
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
