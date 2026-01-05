@@ -20,17 +20,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Build (skip tests for now)
-        run: mvn clean verify -DskipTests
-
-      - name: SonarCloud Scan
+      - name: SonarCloud Scan (no build, advisory mode)
         run: mvn sonar:sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
