@@ -30,9 +30,9 @@ jobs:
 
       - name: Build & SonarCloud Scan
         run: |
-          mvn clean verify -DskipTests \
-          sonar:sonar \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.verbose=true
+          mvn -B clean verify sonar:sonar \
+            -Dsonar.projectKey=saksham-0425_CHUBB_capstone_HMSbackend \
+            -Dsonar.organization=saksham-0425 \
+            -Dsonar.host.url=https://sonarcloud.io
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
