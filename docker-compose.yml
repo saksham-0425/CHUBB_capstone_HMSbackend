@@ -84,10 +84,10 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 60s
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 120s
 
   service-registry:
     build: ./service-registry
@@ -200,6 +200,24 @@ services:
         condition: service_healthy
       redis-booking:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    restart: always
+    networks:
+      - appnet
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    volumes:
+      - ./logs/notification-service:/app/logs
+    depends_on:
       rabbitmq:
         condition: service_healthy
       config-server:
