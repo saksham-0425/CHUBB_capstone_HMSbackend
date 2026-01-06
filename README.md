@@ -35,7 +35,7 @@ The architecture avoids unnecessary services and focuses on correctness, simplic
 
 ## High-Level Architecture
 
-<img width="2418" height="1210" alt="image" src="https://github.com/user-attachments/assets/6e31c0bf-fad2-4316-adfa-08c0f73befee" />
+<img width="1440" height="594" alt="image" src="https://github.com/user-attachments/assets/107553e5-c37f-4ad5-a391-a3a764f2ab74" />
 
 The backend follows a microservice architecture with database-per-service and a central API Gateway.
 
