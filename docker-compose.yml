@@ -1,0 +1,213 @@
+version: "3.9"
+
+services:
+
+  postgres-auth:
+    image: postgres:16
+    container_name: postgres-auth
+    restart: always
+    ports:
+      - "5433:5432"
+    networks:
+      - appnet
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-booking:
+    image: postgres:16
+    container_name: postgres-booking
+    restart: always
+    ports:
+      - "5434:5432"
+    networks:
+      - appnet
+    environment:
+      POSTGRES_DB: bookingdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-hotel:
+    image: postgres:16
+    container_name: postgres-hotel
+    restart: always
+    ports:
+      - "5435:5432"
+    networks:
+      - appnet
+    environment:
+      POSTGRES_DB: hotel_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-booking:
+    image: redis:7
+    container_name: redis-booking
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - appnet
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  service-registry:
+    build: ./service-registry
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    networks:
+      - appnet
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  config-server:
+    build: ./server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - appnet
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8765:8765"
+    networks:
+      - appnet
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    volumes:
+      - ./logs/api-gateway:/app/logs
+    depends_on:
+      config-server:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    restart: always
+    networks:
+      - appnet
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    volumes:
+      - ./logs/auth-service:/app/logs
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+
+  hotel-service:
+    build: ./hotel-service
+    container_name: hotel-service
+    restart: always
+    networks:
+      - appnet
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    volumes:
+      - ./logs/hotel-service:/app/logs
+    depends_on:
+      postgres-hotel:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+
+  booking-service:
+    build: ./booking-service
+    container_name: booking-service
+    restart: always
+    networks:
+      - appnet
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    volumes:
+      - ./logs/booking-service:/app/logs
+    depends_on:
+      postgres-booking:
+        condition: service_healthy
+      redis-booking:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      service-registry:
+        condition: service_healthy
+
+
+networks:
+  appnet:
+    driver: bridge
