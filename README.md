@@ -48,6 +48,100 @@ Key Architectural Characteristics :-
 - Booking Service as the transactional core
 - Reports generated directly from booking data (no reporting service)
 
+## ER Diagram and relationships
+```mermaid
+erDiagram
+
+    USER {
+        Long id PK
+        String email
+        String password
+        String role
+        Boolean enabled
+        DateTime createdAt
+    }
+
+    HOTEL {
+        Long id PK
+        String name
+        String city
+        String address
+        String description
+        String managerEmail
+        String amenities
+    }
+
+    ROOM_CATEGORY {
+        Long id PK
+        String category
+        Integer totalRooms
+        Integer capacity
+        Double basePrice
+        Long hotelId
+    }
+
+    ROOM {
+        Long id PK
+        Long hotelId
+        Long categoryId
+        String roomNumber
+        String status
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    HOTEL_STAFF {
+        Long id PK
+        Long hotelId
+        String staffEmail
+        String role
+    }
+
+    ROOM_ALLOCATION {
+        Long id PK
+        Long bookingId
+        Long roomId
+        DateTime allocatedAt
+        DateTime releasedAt
+    }
+
+    RESERVATION {
+        Long id PK
+        String bookingReference
+        String userEmail
+        String guestName
+        Integer numberOfGuests
+        Integer numberOfRooms
+        Long hotelId
+        Long roomCategoryId
+        Date checkInDate
+        Date checkOutDate
+        Decimal pricePerNight
+        Decimal totalAmount
+        String status
+        String paymentStatus
+        Boolean checkInReminderSent
+        Boolean checkOutReminderSent
+    }
+
+    STAY_RECORD {
+        Long id PK
+        Long reservationId
+        DateTime checkInTime
+        DateTime checkOutTime
+    }
+
+    HOTEL ||--o{ ROOM_CATEGORY : has
+    ROOM_CATEGORY ||--o{ ROOM : contains
+    HOTEL ||--o{ ROOM : owns
+    HOTEL ||--o{ HOTEL_STAFF : employs
+    ROOM ||--o{ ROOM_ALLOCATION : allocated_in
+    RESERVATION ||--|| STAY_RECORD : generates
+    USER ||--o{ RESERVATION : books
+    HOTEL ||--o{ RESERVATION : receives
+    ROOM_CATEGORY ||--o{ RESERVATION : booked_as
+```
+
 ## Backend Components
 
 ### 1. API Gateway
