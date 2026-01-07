@@ -197,5 +197,60 @@ BOOKED → CONFIRMED → CHECKED_IN → CHECKED_OUT
 <img width="1919" height="320" alt="image" src="https://github.com/user-attachments/assets/cc4011ad-b930-4dae-8237-afee1db033f4" />
 <img width="1919" height="476" alt="image" src="https://github.com/user-attachments/assets/07800fb3-2646-464b-b5b0-1eb99f2497c3" />
 
+### Technology Stack
 
+Backend & Core Frameworks
+- Java 17
+- Spring Boot 3.x
+- Spring Cloud
+- Spring Web (REST APIs)
+- Spring Security
+- JWT (JSON Web Tokens)
+- Persistence & Data
+- Spring Data JPA
+- Hibernate
+- PostgreSQL
+- Redis
+- Rabbitmq
 
+Build & DevOps
+- Maven
+- Docker
+- Docker Compose
+
+Testing & Tooling
+- JUnit 5
+- Mockito
+- Postman
+
+### Running all services locally :-
+Prerequisites
+- Java 17+
+- Maven
+- Docker Desktop
+- Redis
+Steps
+```
+# Build all the jars
+mvn clean package / mvn package
+
+# Start all services and infrastructure
+docker-compose up
+```
+
+### Key Design Decisions
+
+- Database-per-service architecture
+- Redis for real-time availability and locking
+- No reporting microservice (intentional)
+- Strict booking lifecycle enforcement
+- Stateless services with JWT
+- Role enforcement at service layer
+- Clean separation of domain responsibilities
+
+### Author
+```
+Saksham Gupta
+Final Year B.Tech (CSE)
+Hotel Management System – Capstone Project
+```
